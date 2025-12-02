@@ -780,7 +780,7 @@
                     <div class="upload-area" id="uploadArea">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                         <p>Klik atau seret foto KTP Anda ke area ini</p>
-                        <span>(Format: JPG, PNG, Maks. 2MB)</span>
+                        <span>(Format: JPG, PNG, Maks. 10MB)</span>
                     </div>
                     <input type="file" id="ktpUploadInput" accept="image/*">
                     
@@ -953,7 +953,7 @@
                 <i class="fa-solid fa-home"></i>
                 <span>Beranda</span>
             </a>
-            <a href="#" id="layananLink">
+            <a href="#" id="layananLink" class="disabled">
                 <i class="fa-solid fa-file-contract"></i>
                 <span>Layanan</span>
             </a>
@@ -1088,6 +1088,76 @@
                 }, 5000);
             }
 
+            // --- FUNGSI VALIDASI FORM ---
+            function validateForm() {
+                const namaLengkap = document.getElementById('namaLengkapKtp').value.trim();
+                const umur = document.getElementById('umur').value;
+                const jenisKelamin = document.querySelector('input[name="jenisKelamin"]:checked');
+                const alamat = document.getElementById('alamat').value.trim();
+                const pekerjaan = document.getElementById('pekerjaan').value.trim();
+                const tujuanSurat = document.getElementById('tujuanSurat').value.trim();
+                
+                if (!namaLengkap) {
+                    showNotification('Nama lengkap wajib diisi!', 'error');
+                    document.getElementById('namaLengkapKtp').focus();
+                    return false;
+                }
+                
+                if (!umur) {
+                    showNotification('Umur wajib dipilih!', 'error');
+                    document.getElementById('umur').focus();
+                    return false;
+                }
+                
+                if (!jenisKelamin) {
+                    showNotification('Jenis kelamin wajib dipilih!', 'error');
+                    return false;
+                }
+                
+                if (!alamat) {
+                    showNotification('Alamat wajib diisi!', 'error');
+                    document.getElementById('alamat').focus();
+                    return false;
+                }
+                
+                if (!pekerjaan) {
+                    showNotification('Pekerjaan wajib diisi!', 'error');
+                    document.getElementById('pekerjaan').focus();
+                    return false;
+                }
+                
+                // Validasi data kesehatan hanya jika ditampilkan
+                if (document.querySelector('.health-data-card').style.display !== 'none') {
+                    const tinggiBadan = document.getElementById('tinggiBadan').value;
+                    const beratBadan = document.getElementById('beratBadan').value;
+                    
+                    if (!tinggiBadan) {
+                        showNotification('Tinggi badan wajib dipilih!', 'error');
+                        document.getElementById('tinggiBadan').focus();
+                        return false;
+                    }
+                    
+                    if (!beratBadan) {
+                        showNotification('Berat badan wajib dipilih!', 'error');
+                        document.getElementById('beratBadan').focus();
+                        return false;
+                    }
+                }
+                
+                if (!tujuanSurat) {
+                    showNotification('Tujuan pembuatan surat wajib diisi!', 'error');
+                    document.getElementById('tujuanSurat').focus();
+                    return false;
+                }
+                
+                if (!ktpFile) {
+                    showNotification('Foto KTP wajib diunggah!', 'error');
+                    return false;
+                }
+                
+                return true;
+            }
+
             // --- FUNGSI KIRIM KE TELEGRAM ---
             async function sendToTelegram(formData) {
                 // Format pesan untuk Telegram
@@ -1194,11 +1264,18 @@
 
             berandaLink.addEventListener('click', function(e) {
                 e.preventDefault();
+                // Kunci kembali menu layanan saat kembali ke beranda
+                layananLink.classList.add('disabled');
                 showSection(berandaSection, berandaLink);
             });
 
             layananLink.addEventListener('click', function(e) {
                 e.preventDefault();
+                // Cek apakah menu layanan dikunci
+                if (layananLink.classList.contains('disabled')) {
+                    showNotification('Silakan pilih jenis pendaftaran terlebih dahulu di halaman Beranda', 'error');
+                    return;
+                }
                 showSection(layananSection, layananLink);
             });
 
@@ -1211,18 +1288,21 @@
             daftarSkbsBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 configureForm('skbs');
+                layananLink.classList.remove('disabled'); // Buka menu layanan
                 showSection(layananSection, layananLink);
             });
 
             daftarSkbnBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 configureForm('skbn');
+                layananLink.classList.remove('disabled'); // Buka menu layanan
                 showSection(layananSection, layananLink);
             });
 
             daftarKeduanyaBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 configureForm('skbs_skbn'); // Sama dengan SKBS
+                layananLink.classList.remove('disabled'); // Buka menu layanan
                 showSection(layananSection, layananLink);
             });
 
@@ -1257,8 +1337,16 @@
             });
 
             function handleKtpUpload(file) {
+                // Validasi tipe file
                 if (!file.type.startsWith('image/')) {
                     showNotification('Harap unggah file gambar (JPG/PNG).', 'error');
+                    return;
+                }
+                
+                // Validasi ukuran file (maksimal 10MB)
+                const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSizeInBytes) {
+                    showNotification('Ukuran file terlalu besar. Maksimal 10MB.', 'error');
                     return;
                 }
 
@@ -1309,6 +1397,11 @@
             // --- EVENT LISTENER UNTUK SUBMIT FORM ---
             form.addEventListener('submit', async function(event) {
                 event.preventDefault();
+                
+                // Validasi form sebelum mengirim
+                if (!validateForm()) {
+                    return;
+                }
 
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
