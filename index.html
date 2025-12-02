@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran SKBS/SKBN - RSUD Talaud</title>
+    <title>Si Sehat - RSUD Talaud</title>
     
     <!-- Menggunakan Font Awesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -11,7 +11,13 @@
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- html2canvas library untuk mengubah form menjadi gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- FileSaver.js untuk download file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
         /* --- Gaya Umum & Reset --- */
@@ -44,6 +50,158 @@
             overflow-x: hidden;
         }
 
+        /* --- Gaya untuk Opening Screen --- */
+        .opening-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-gradient);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            overflow-y: auto;
+            transition: all 0.5s ease;
+        }
+
+        .opening-screen.hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            visibility: hidden;
+        }
+
+        .opening-logo {
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .opening-logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .opening-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .opening-subtitle {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .opening-description {
+            max-width: 500px;
+            margin-bottom: 40px;
+            font-size: 1rem;
+            line-height: 1.8;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .opening-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            max-width: 600px;
+            animation: fadeInUp 1s ease 0.8s both;
+        }
+
+        .feature-item {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 1;
+            min-width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-5px);
+        }
+
+        .feature-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .feature-item h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .feature-item p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .btn-continue {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease 1s both;
+        }
+
+        .btn-continue:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .btn-continue:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Container diperbesar dari 480px menjadi 600px */
         .container {
             max-width: 600px;
@@ -60,6 +218,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         header::before {
             content: '';
@@ -146,6 +305,7 @@
             margin-top: 25px;
             box-shadow: var(--card-shadow);
             text-align: center;
+            transition: all 0.3s ease;
         }
         
         /* Font judul card diperbesar */
@@ -283,17 +443,20 @@
         /* --- Konten Utama (Formulir & Alur Layanan) --- */
         main {
             padding: 15px 0;
+            transition: all 0.3s ease;
         }
 
         .content-section {
             display: none;
             opacity: 0;
-            transition: opacity 0.4s ease-in-out;
+            transition: all 0.4s ease-in-out;
+            transform: translateY(20px);
         }
         
         .content-section.active {
             display: block;
             opacity: 1;
+            transform: translateY(0);
         }
 
         .form-card {
@@ -302,7 +465,7 @@
             padding: 25px; /* Padding diperbesar */
             margin-top: 25px;
             box-shadow: var(--card-shadow);
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transition: all 0.4s ease, box-shadow 0.4s ease;
             position: relative;
         }
         
@@ -539,7 +702,7 @@
             z-index: 2000;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             max-width: 90%;
         }
@@ -574,6 +737,7 @@
             background: var(--primary-gradient);
             box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
             z-index: 1000;
+            transition: all 0.3s ease;
         }
 
         footer nav {
@@ -637,6 +801,7 @@
             margin: 25px auto;
             box-shadow: var(--card-shadow);
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         /* Font judul kartu jenis pendaftaran diperbesar */
@@ -709,9 +874,308 @@
             cursor: not-allowed;
             pointer-events: none;
         }
+        
+        /* Gaya untuk modal kode daftar */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: var(--card-shadow-hover);
+            text-align: center;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .close {
+            color: var(--secondary-color);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--dark-color);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .kode-daftar {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 10px;
+            margin: 20px 0;
+            letter-spacing: 1px;
+        }
+
+        .warning-box {
+            background-color: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        .warning-box p {
+            margin-bottom: 0;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-download {
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        /* Gaya untuk form gambar yang akan dikirim ke Telegram */
+        #formImageContainer {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-image-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .form-image-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .form-image-code {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background-color: #f0f4ff;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .form-image-content {
+            margin-bottom: 20px;
+        }
+
+        .form-image-section {
+            margin-bottom: 15px;
+        }
+
+        .form-image-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .form-image-field {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .form-image-label {
+            font-weight: 600;
+            width: 150px;
+            color: var(--secondary-color);
+        }
+
+        .form-image-value {
+            flex: 1;
+            color: var(--dark-color);
+        }
+
+        .form-image-footer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        /* Gaya untuk KTP dengan kode */
+        #ktpWithCodeContainer {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 400px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .ktp-code-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 900; /* Menggunakan font-weight 900 untuk teks paling tebal */
+            color: var(--primary-color);
+            font-size: 1rem;
+            text-align: right;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 2px solid var(--primary-color);
+            max-width: 150px;
+        }
+
+        .ktp-code {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .ktp-time {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+        }
+
+        .ktp-image-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .ktp-image-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Gaya untuk gambar KTP di dalam form */
+        .form-image-ktp {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .form-image-ktp-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .form-image-ktp-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .form-image-ktp-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
+
+    <!-- Opening Screen -->
+    <div class="opening-screen" id="openingScreen">
+        <div class="opening-logo">
+            <img src="https://z-cdn-media.chatglm.cn/files/b4d36e42-0be2-452f-8e16-e5eeab08ede5_talaud_400kb.png?auth_key=1864643267-608b935f262943e18f44268f65ab014d-0-20d1a2c006a0416ea1fb36417d8eea78" alt="Logo RSUD Talaud">
+        </div>
+        <h1 class="opening-title">Selamat Datang di Si Sehat</h1>
+        <p class="opening-subtitle">Sistem Informasi Kesehatan RSUD Talaud</p>
+        
+        <div class="opening-description">
+            <p>Si Sehat merupakan aplikasi digital yang dirancang untuk mempermudah masyarakat dalam melakukan pendaftaran online untuk penerbitan Surat Keterangan Berbadan Sehat (SKBS) dan Surat Keterangan Bebas Narkoba (SKBN).</p>
+            <p>Dengan Si Sehat, proses pendaftaran menjadi lebih cepat, mudah, dan efisien tanpa perlu antri berlama-lama.</p>
+        </div>
+        
+        <div class="opening-features">
+            <div class="feature-item">
+                <i class="fa-solid fa-heart-pulse"></i>
+                <h3>SKBS</h3>
+                <p>Surat Keterangan Berbadan Sehat</p>
+            </div>
+            <div class="feature-item">
+                <i class="fa-solid fa-shield-virus"></i>
+                <h3>SKBN</h3>
+                <p>Surat Keterangan Bebas Narkoba</p>
+            </div>
+        </div>
+        
+        <button class="btn-continue" id="btnContinue">
+            <i class="fa-solid fa-arrow-right"></i> Lanjut
+        </button>
+    </div>
 
     <header>
         <div class="header-content">
@@ -737,7 +1201,7 @@
             </div>
 
             <!-- SECTION 1: BERANDA (OPENING) -->
-            <section id="berandaSection" class="content-section active">
+            <section id="berandaSection" class="content-section">
                 <div class="opening-card">
                     <h2>Selamat Datang di Layanan Pendaftaran Online</h2>
                     <p style="color: var(--secondary-color); margin-bottom: 30px;">Silakan pilih jenis pendaftaran yang Anda butuhkan:</p>
@@ -823,7 +1287,7 @@
 
                         <div class="form-group">
                             <label for="alamat">ALAMAT</label>
-                            <textarea id="alamat" name="alamat" rows="3" required placeholder="Jalan, No. Rumah, RT/RW, Kelurahan, Kecamatan"></textarea>
+                            <textarea id="alamat" name="alamat" rows="3" required placeholder="Nama Desa/Kelurahan, Kecamatan, Kabupaten/Kota"></textarea>
                         </div>
 
                         <div class="form-group">
@@ -935,8 +1399,20 @@
                                 
                                 <div class="location-info">
                                     <p><strong><i class="fa-solid fa-location-dot"></i> Informasi Penting:</strong></p>
-                                    <p>SKBS/SKBN akan diterbitkan di kantor lantai 2 gedung utama. Pastikan Anda membawa bukti pembayaran dan semua dokumen pendukung saat pengambilan.</p>
+                                    <p>SKBS/SKBN akan diterbitkan di kantor lantai 2 gedung utama. Pastikan Anda membawa bukti status dan hasil pemeriksaan yang sudah di validasi oleh dokter jaga (IGD).</p>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-marker"><i class="fa-solid fa-money-bill-wave"></i></div>
+                            <div class="timeline-content">
+                                <h3>5. Pembayaran</h3>
+                                <p>Setelah semua pemeriksaan selesai:</p>
+                                <ul style="padding-left: 20px; margin-top: 5px;">
+                                    <li>Lakukan pembayaran di <strong>Kasir</strong>.</li>
+                                    <li>Simpan bukti pembayaran untuk pengambilan surat.</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -964,6 +1440,108 @@
         </nav>
     </footer>
 
+    <!-- Modal Kode Daftar -->
+    <div id="kodeDaftarModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2>Pendaftaran Berhasil!</h2>
+                <p>Simpan kode daftar Anda untuk proses selanjutnya</p>
+            </div>
+            <div class="modal-body">
+                <div class="kode-daftar" id="kodeDaftarText"></div>
+                <div class="warning-box">
+                    <p><strong>PERINGATAN:</strong></p>
+                    <p>1. Wajib download atau screenshoot kode daftar ini</p>
+                    <p>2. Segala kehilangan kode daftar bukan tanggung jawab pihak rumah sakit</p>
+                    <p>3. Kode daftar hanya berlaku untuk hari ini</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn-download" id="downloadKodeBtn">
+                    <i class="fa-solid fa-download"></i> Download Kode
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container untuk gambar form yang akan dikirim ke Telegram -->
+    <div id="formImageContainer">
+        <div class="form-image-header">
+            <div class="form-image-title" id="formImageTitle">FORMULIR PENDAFTARAN</div>
+            <div class="form-image-code" id="formImageCode"></div>
+        </div>
+        <div class="form-image-content">
+            <div class="form-image-section">
+                <div class="form-image-section-title">DATA PEMOHON</div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Nama Lengkap:</div>
+                    <div class="form-image-value" id="formImageNama"></div>
+                </div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Umur:</div>
+                    <div class="form-image-value" id="formImageUmur"></div>
+                </div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Jenis Kelamin:</div>
+                    <div class="form-image-value" id="formImageJenisKelamin"></div>
+                </div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Alamat:</div>
+                    <div class="form-image-value" id="formImageAlamat"></div>
+                </div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Pekerjaan:</div>
+                    <div class="form-image-value" id="formImagePekerjaan"></div>
+                </div>
+            </div>
+            <div class="form-image-section" id="formImageKesehatanSection">
+                <div class="form-image-section-title">DATA KESEHATAN</div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Tinggi Badan:</div>
+                    <div class="form-image-value" id="formImageTinggiBadan"></div>
+                </div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Berat Badan:</div>
+                    <div class="form-image-value" id="formImageBeratBadan"></div>
+                </div>
+            </div>
+            <div class="form-image-section">
+                <div class="form-image-section-title">TUJUAN PEMBUATAN SURAT</div>
+                <div class="form-image-field">
+                    <div class="form-image-label">Tujuan:</div>
+                    <div class="form-image-value" id="formImageTujuan"></div>
+                </div>
+            </div>
+            <!-- Bagian KTP yang akan ditambahkan di bawah tujuan surat -->
+            <div class="form-image-ktp">
+                <div class="form-image-ktp-title">FOTO KTP</div>
+                <div class="form-image-ktp-container">
+                    <img id="formImageKtp" src="" alt="KTP">
+                    <div class="ktp-code-overlay" id="formImageKtpOverlay">
+                        <div class="ktp-code" id="formImageKtpCode"></div>
+                        <div class="ktp-time" id="formImageKtpTime"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-image-footer">
+            <p>RSUD Talaud - Pendaftaran Online SKBS/SKBN</p>
+            <p id="formImageDateTime"></p>
+        </div>
+    </div>
+
+    <!-- Container untuk KTP dengan kode -->
+    <div id="ktpWithCodeContainer">
+        <div class="ktp-image-container">
+            <img id="ktpWithCodeImage" src="" alt="KTP">
+            <div class="ktp-code-overlay" id="ktpCodeOverlay">
+                <div class="ktp-code" id="ktpCode"></div>
+                <div class="ktp-time" id="ktpTime"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- KONFIGURASI TELEGRAM ---
@@ -979,6 +1557,10 @@
             const notificationText = document.getElementById('notificationText');
             const submitBtn = document.getElementById('submitBtn');
             const resetBtn = document.getElementById('resetBtn');
+            
+            // Opening Screen
+            const openingScreen = document.getElementById('openingScreen');
+            const btnContinue = document.getElementById('btnContinue');
             
             // Navigasi
             const berandaLink = document.getElementById('berandaLink');
@@ -1012,7 +1594,58 @@
 
             // Waktu
             const currentTimeElement = document.getElementById('currentTime');
-
+            
+            // Modal Kode Daftar
+            const kodeDaftarModal = document.getElementById('kodeDaftarModal');
+            const kodeDaftarText = document.getElementById('kodeDaftarText');
+            const downloadKodeBtn = document.getElementById('downloadKodeBtn');
+            const modalClose = document.querySelector('.close');
+            
+            // Variabel untuk menyimpan kode daftar
+            let currentKodeDaftar = '';
+            
+            // Form Image Container
+            const formImageContainer = document.getElementById('formImageContainer');
+            const formImageTitle = document.getElementById('formImageTitle');
+            const formImageCode = document.getElementById('formImageCode');
+            const formImageNama = document.getElementById('formImageNama');
+            const formImageUmur = document.getElementById('formImageUmur');
+            const formImageJenisKelamin = document.getElementById('formImageJenisKelamin');
+            const formImageAlamat = document.getElementById('formImageAlamat');
+            const formImagePekerjaan = document.getElementById('formImagePekerjaan');
+            const formImageKesehatanSection = document.getElementById('formImageKesehatanSection');
+            const formImageTinggiBadan = document.getElementById('formImageTinggiBadan');
+            const formImageBeratBadan = document.getElementById('formImageBeratBadan');
+            const formImageTujuan = document.getElementById('formImageTujuan');
+            const formImageDateTime = document.getElementById('formImageDateTime');
+            const formImageKtp = document.getElementById('formImageKtp');
+            const formImageKtpOverlay = document.getElementById('formImageKtpOverlay');
+            const formImageKtpCode = document.getElementById('formImageKtpCode');
+            const formImageKtpTime = document.getElementById('formImageKtpTime');
+            
+            // KTP with Code Container
+            const ktpWithCodeContainer = document.getElementById('ktpWithCodeContainer');
+            const ktpWithCodeImage = document.getElementById('ktpWithCodeImage');
+            const ktpCodeOverlay = document.getElementById('ktpCodeOverlay');
+            const ktpCode = document.getElementById('ktpCode');
+            const ktpTime = document.getElementById('ktpTime');
+            
+            // --- FUNGSI OPENING SCREEN ---
+            // Selalu tampilkan opening screen saat aplikasi dibuka
+            openingScreen.classList.remove('hidden');
+            
+            // Event listener untuk tombol lanjut
+            btnContinue.addEventListener('click', function() {
+                // Sembunyikan opening screen dengan animasi
+                openingScreen.style.opacity = '0';
+                openingScreen.style.transform = 'scale(0.95)';
+                
+                setTimeout(() => {
+                    openingScreen.classList.add('hidden');
+                    berandaSection.classList.add('active');
+                }, 500);
+            });
+            
             // --- INISIALISASI DROPDOWN ---
             const umurSelect = document.getElementById('umur');
             for (let i = 5; i <= 100; i++) {
@@ -1155,85 +1788,180 @@
                     return false;
                 }
                 
+                // Cek apakah nama sudah mendaftar hari ini untuk jenis yang sama
+                if (isAlreadyRegisteredToday(namaLengkap, currentRegistrationType)) {
+                    showNotification(`Anda sudah mendaftar ${currentRegistrationType.toUpperCase()} hari ini. Silakan coba lagi besok.`, 'error');
+                    return false;
+                }
+                
                 return true;
             }
 
-            // --- FUNGSI KIRIM KE TELEGRAM (DIPERBAIKI UNTUK FOTO KTP YANG LEBIH JELAS) ---
+            // --- FUNGSI CEK REGISTRASI HARI INI ---
+            function isAlreadyRegisteredToday(nama, jenis) {
+                const today = new Date().toDateString();
+                const registrations = JSON.parse(localStorage.getItem('registrations') || '[]');
+                
+                return registrations.some(reg => 
+                    reg.nama.toLowerCase() === nama.toLowerCase() && 
+                    reg.jenis === jenis && 
+                    new Date(reg.tanggal).toDateString() === today
+                );
+            }
+
+            // --- FUNGSI SIMPAN REGISTRASI ---
+            function saveRegistration(nama, jenis, kode) {
+                const registrations = JSON.parse(localStorage.getItem('registrations') || '[]');
+                registrations.push({
+                    nama: nama,
+                    jenis: jenis,
+                    kode: kode,
+                    tanggal: new Date().toISOString()
+                });
+                localStorage.setItem('registrations', JSON.stringify(registrations));
+            }
+
+            // --- FUNGSI GENERATE KODE DAFTAR ---
+            function generateKodeDaftar(jenis) {
+                const now = new Date();
+                const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][now.getDay()];
+                const tanggal = String(now.getDate()).padStart(2, '0');
+                const bulan = String(now.getMonth() + 1).padStart(2, '0');
+                const tahun = now.getFullYear();
+                const jam = String(now.getHours()).padStart(2, '0');
+                const menit = String(now.getMinutes()).padStart(2, '0');
+                
+                // Ambil nomor urut dari localStorage
+                let nomorUrutKey = '';
+                let prefix = '';
+                
+                if (jenis === 'skbs') {
+                    nomorUrutKey = 'nomorUrutSkbs';
+                    prefix = 'SKBS';
+                } else if (jenis === 'skbn') {
+                    nomorUrutKey = 'nomorUrutSkbn';
+                    prefix = 'SKBN';
+                } else {
+                    nomorUrutKey = 'nomorUrutSkbsSkbn';
+                    prefix = 'SKBS/N';
+                }
+                
+                // Reset nomor urut setiap hari
+                const lastResetDate = localStorage.getItem(`${nomorUrutKey}LastReset`) || '';
+                const today = now.toDateString();
+                
+                if (lastResetDate !== today) {
+                    localStorage.setItem(`${nomorUrutKey}LastReset`, today);
+                    localStorage.setItem(nomorUrutKey, '0');
+                }
+                
+                let nomorUrut = parseInt(localStorage.getItem(nomorUrutKey) || '0') + 1;
+                localStorage.setItem(nomorUrutKey, nomorUrut.toString());
+                
+                const nomorUrutFormatted = String(nomorUrut).padStart(3, '0');
+                
+                return `${prefix}-${nomorUrutFormatted}`;
+            }
+
+            // --- FUNGSI CREATE FORM IMAGE ---
+            function createFormImage(formData) {
+                // Set judul form
+                formImageTitle.textContent = `FORMULIR PENDAFTARAN ${formData.jenisPendaftaran.toUpperCase()}`;
+                
+                // Set kode daftar
+                formImageCode.textContent = currentKodeDaftar;
+                
+                // Set data pemohon
+                formImageNama.textContent = formData.namaLengkap;
+                formImageUmur.textContent = formData.umur;
+                formImageJenisKelamin.textContent = formData.jenisKelamin;
+                formImageAlamat.textContent = formData.alamat;
+                formImagePekerjaan.textContent = formData.pekerjaan;
+                
+                // Set data kesehatan (hanya untuk SKBS dan SKBS/SKBN)
+                if (formData.jenisPendaftaran !== 'SKBN') {
+                    formImageKesehatanSection.style.display = 'block';
+                    formImageTinggiBadan.textContent = formData.tinggiBadan;
+                    formImageBeratBadan.textContent = formData.beratBadan;
+                } else {
+                    formImageKesehatanSection.style.display = 'none';
+                }
+                
+                // Set tujuan
+                formImageTujuan.textContent = formData.tujuanSurat;
+                
+                // Set gambar KTP
+                formImageKtp.src = ktpPreview.src;
+                
+                // Set kode dan waktu di overlay KTP
+                formImageKtpCode.textContent = currentKodeDaftar;
+                const now = new Date();
+                const jam = String(now.getHours()).padStart(2, '0');
+                const menit = String(now.getMinutes()).padStart(2, '0');
+                formImageKtpTime.textContent = `${jam}:${menit}`;
+                
+                // Set tanggal dan waktu
+                formImageDateTime.textContent = `Tanggal: ${new Date().toLocaleDateString('id-ID')} | Waktu: ${new Date().toLocaleTimeString('id-ID')}`;
+                
+                return formImageContainer;
+            }
+
+            // --- FUNGSI CREATE KTP WITH CODE ---
+            function createKtpWithCode() {
+                // Set gambar KTP
+                ktpWithCodeImage.src = ktpPreview.src;
+                
+                // Set kode daftar
+                ktpCode.textContent = currentKodeDaftar;
+                
+                // Set waktu daftar
+                const now = new Date();
+                const jam = String(now.getHours()).padStart(2, '0');
+                const menit = String(now.getMinutes()).padStart(2, '0');
+                ktpTime.textContent = `${jam}:${menit}`;
+                
+                return ktpWithCodeContainer;
+            }
+
+            // --- FUNGSI KIRIM KE TELEGRAM (DIMODIFIKASI UNTUK GAMBAR) ---
             async function sendToTelegram(formData) {
                 try {
-                    // Format pesan untuk Telegram
-                    let message = `📋 PENDAFTARAN BARU SKBS/SKBN\n\n`;
-                    message += `🔹 JENIS PENDAFTARAN: ${formData.jenisPendaftaran}\n\n`;
-                    message += `👤 DATA PEMOHON:\n`;
-                    message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-                    message += `📝 NAMA LENGKAP: ${formData.namaLengkap}\n`;
-                    message += `🎂 UMUR: ${formData.umur}\n`;
-                    message += `⚧️ JENIS KELAMIN: ${formData.jenisKelamin}\n`;
-                    message += `🏠 ALAMAT: ${formData.alamat}\n`;
-                    message += `💼 PEKERJAAN: ${formData.pekerjaan}\n\n`;
+                    // Buat gambar form
+                    const formImageElement = createFormImage(formData);
                     
-                    if (formData.jenisPendaftaran !== 'SKBN') {
-                        message += `🏥 DATA KESEHATAN:\n`;
-                        message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-                        message += `📏 TINGGI BADAN: ${formData.tinggiBadan}\n`;
-                        message += `⚖️ BERAT BADAN: ${formData.beratBadan}\n\n`;
-                    }
-                    
-                    message += `🎯 TUJUAN PEMBUATAN SURAT:\n`;
-                    message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-                    message += `${formData.tujuanSurat}\n\n`;
-                    message += `⏰ WAKTU DAFTAR: ${new Date().toLocaleString('id-ID')}`;
-
-                    // Kirim pesan teks dengan method POST
-                    const textFormData = new FormData();
-                    textFormData.append('chat_id', telegramChatId);
-                    textFormData.append('text', message);
-                    textFormData.append('parse_mode', 'HTML'); // Tambahkan parse_mode untuk formatting
-                    
-                    const textUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
-                    const textResponse = await fetch(textUrl, {
-                        method: 'POST',
-                        body: textFormData
+                    // Ambil gambar form sebagai blob
+                    const formCanvas = await html2canvas(formImageElement, {
+                        scale: 2, // Tingkatkan kualitas gambar
+                        logging: false,
+                        useCORS: true,
+                        height: formImageElement.scrollHeight,
+                        width: formImageElement.scrollWidth
                     });
                     
-                    const textResult = await textResponse.json();
+                    const formBlob = await new Promise(resolve => {
+                        formCanvas.toBlob(resolve, 'image/jpeg', 0.9);
+                    });
                     
-                    if (!textResult.ok) {
-                        console.error('Error response from Telegram:', textResult);
-                        throw new Error(`Gagal mengirim pesan: ${textResult.description || 'Unknown error'}`);
+                    // Kirim gambar form ke Telegram
+                    const formFormData = new FormData();
+                    formFormData.append('chat_id', telegramChatId);
+                    formFormData.append('photo', formBlob, `form-${currentKodeDaftar}.jpg`);
+                    formFormData.append('caption', `📋 PENDAFTARAN BARU ${formData.jenisPendaftaran.toUpperCase()}\n\nKode Daftar: ${currentKodeDaftar}\nNama: ${formData.namaLengkap}\nTanggal: ${new Date().toLocaleDateString('id-ID')}`);
+                    
+                    const formUrl = `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`;
+                    const formResponse = await fetch(formUrl, {
+                        method: 'POST',
+                        body: formFormData
+                    });
+                    
+                    const formResult = await formResponse.json();
+                    
+                    if (!formResult.ok) {
+                        console.error('Error response from Telegram for form:', formResult);
+                        throw new Error(`Gagal mengirim form: ${formResult.description || 'Unknown error'}`);
                     }
                     
-                    // Kirim foto KTP jika ada dengan kualitas tinggi
-                    if (ktpFile) {
-                        // Buat FormData untuk mengirim file
-                        const photoFormData = new FormData();
-                        photoFormData.append('chat_id', telegramChatId);
-                        
-                        // Gunakan file asli tanpa modifikasi untuk mempertahankan kualitas
-                        // Telegram mungkin tetap mengompres, tapi kita kirim yang terbaik
-                        photoFormData.append('photo', ktpFile);
-                        
-                        // Caption yang lebih detail untuk foto KTP
-                        const namaLengkap = document.getElementById('namaLengkapKtp').value.trim();
-                        const photoCaption = `📸 FOTO KTP PEMOHON\n━━━━━━━━━━━━━━━━━━━━━━\n👤 Nama: ${namaLengkap}\n📋 Jenis Pendaftaran: ${formData.jenisPendaftaran}\n📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}`;
-                        
-                        photoFormData.append('caption', photoCaption);
-                        photoFormData.append('parse_mode', 'HTML');
-                        
-                        // Kirim foto dengan metode multipart/form-data
-                        const photoUrl = `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`;
-                        const photoResponse = await fetch(photoUrl, {
-                            method: 'POST',
-                            body: photoFormData
-                        });
-                        const photoResult = await photoResponse.json();
-                        
-                        if (!photoResult.ok) {
-                            console.error('Error response from Telegram for photo:', photoResult);
-                            throw new Error(`Gagal mengirim foto: ${photoResult.description || 'Unknown error'}`);
-                        }
-                    }
-                    
+                    // Tidak perlu mengirim KTP terpisah karena sudah ada di dalam form
                     return true;
                 } catch (error) {
                     console.error('Error sending to Telegram:', error);
@@ -1274,12 +2002,17 @@
 
             // --- LOGIKA NAVIGASI MENU ---
             function showSection(sectionToShow, menuLinkActive) {
-                // Sembunyikan semua section
+                // Sembunyikan semua section dengan transisi
                 document.querySelectorAll('.content-section').forEach(section => {
-                    section.classList.remove('active');
+                    if (section.classList.contains('active')) {
+                        section.classList.remove('active');
+                    }
                 });
-                // Tampilkan section yang dipilih
-                sectionToShow.classList.add('active');
+                
+                // Tampilkan section yang dipilih dengan delay untuk transisi
+                setTimeout(() => {
+                    sectionToShow.classList.add('active');
+                }, 100);
                 
                 // Update active state di footer
                 document.querySelectorAll('footer nav a').forEach(link => link.classList.remove('active'));
@@ -1418,6 +2151,69 @@
                 submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Daftar';
             });
 
+            // --- EVENT LISTENER UNTUK MODAL KODE DAFTAR ---
+            modalClose.addEventListener('click', function() {
+                kodeDaftarModal.classList.remove('show');
+                setTimeout(() => {
+                    kodeDaftarModal.style.display = 'none';
+                }, 300);
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === kodeDaftarModal) {
+                    kodeDaftarModal.classList.remove('show');
+                    setTimeout(() => {
+                        kodeDaftarModal.style.display = 'none';
+                    }, 300);
+                }
+            });
+
+            downloadKodeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Buat gambar untuk kode daftar
+                const kodeCanvas = document.createElement('canvas');
+                kodeCanvas.width = 600;
+                kodeCanvas.height = 300;
+                const ctx = kodeCanvas.getContext('2d');
+                
+                // Background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, kodeCanvas.width, kodeCanvas.height);
+                
+                // Border
+                ctx.strokeStyle = '#4364F7';
+                ctx.lineWidth = 5;
+                ctx.strokeRect(0, 0, kodeCanvas.width, kodeCanvas.height);
+                
+                // Header
+                ctx.fillStyle = '#4364F7';
+                ctx.font = 'bold 24px Poppins';
+                ctx.textAlign = 'center';
+                ctx.fillText('KODE DAFTAR', kodeCanvas.width / 2, 50);
+                
+                // Kode
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 36px Poppins';
+                ctx.fillText(currentKodeDaftar, kodeCanvas.width / 2, 120);
+                
+                // Informasi
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '16px Poppins';
+                ctx.fillText('RSUD Talaud', kodeCanvas.width / 2, 180);
+                ctx.fillText(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, kodeCanvas.width / 2, 210);
+                
+                // Peringatan
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = '14px Poppins';
+                ctx.fillText('Simpan kode ini dengan baik', kodeCanvas.width / 2, 250);
+                
+                // Download gambar
+                kodeCanvas.toBlob(function(blob) {
+                    saveAs(blob, `kode-daftar-${currentKodeDaftar}.jpg`);
+                });
+            });
+
             // --- EVENT LISTENER UNTUK SUBMIT FORM ---
             form.addEventListener('submit', async function(event) {
                 event.preventDefault();
@@ -1430,6 +2226,9 @@
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
 
+                // Generate kode daftar
+                currentKodeDaftar = generateKodeDaftar(currentRegistrationType);
+                
                 // Kumpulkan data dari form
                 const formData = {
                     jenisPendaftaran: registrationTypeText.textContent.replace('Pendaftaran ', ''),
@@ -1448,8 +2247,15 @@
                     const success = await sendToTelegram(formData);
                     
                     if (success) {
-                        // Tampilkan notifikasi dengan pesan yang diminta
-                        showNotification('Data terkirim dan pendaftar melanjutkan ke loket pendaftaran untuk pengambilan status serta ke tahap selanjutnya', 'success');
+                        // Simpan registrasi ke localStorage
+                        saveRegistration(formData.namaLengkap, currentRegistrationType, currentKodeDaftar);
+                        
+                        // Tampilkan modal kode daftar
+                        kodeDaftarText.textContent = currentKodeDaftar;
+                        kodeDaftarModal.style.display = 'block';
+                        setTimeout(() => {
+                            kodeDaftarModal.classList.add('show');
+                        }, 100);
                         
                         // Reset form after successful submission
                         form.reset();
