@@ -13,6 +13,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    
     <!-- html2canvas library untuk mengubah form menjadi gambar -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -448,6 +451,52 @@
 
         .upload-status.error {
             color: var(--danger-color);
+        }
+        
+        /* --- Gaya untuk Cropper Container --- */
+        #ktpCropperContainer {
+            max-width: 100%;
+            margin: 20px auto;
+            display: none; /* Akan ditampilkan saat cropping */
+        }
+
+        .cropper-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-crop {
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-crop:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-cancel-crop {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel-crop:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
         }
 
         /* --- Konten Utama (Formulir & Alur Layanan) --- */
@@ -1260,6 +1309,19 @@
                     </div>
                     <input type="file" id="ktpUploadInput" accept="image/*">
                     
+                    <!-- Container untuk Cropper.js -->
+                    <div id="ktpCropperContainer">
+                        <img id="ktpImageForCrop" style="max-width: 100%;">
+                    </div>
+                    <div class="cropper-actions">
+                        <button class="btn-crop" id="confirmCropBtn">
+                            <i class="fa-solid fa-crop"></i> Potong & Konfirmasi
+                        </button>
+                        <button class="btn-cancel-crop" id="cancelCropBtn">
+                            <i class="fa-solid fa-times"></i> Batal
+                        </button>
+                    </div>
+                    
                     <div class="upload-result" id="uploadResult">
                         <img id="ktpPreview" src="" alt="Preview KTP">
                         <p class="upload-status" id="uploadStatus"></p>
@@ -1554,6 +1616,9 @@
         </div>
     </div>
 
+    <!-- Cropper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- KONFIGURASI TELEGRAM ---
@@ -1601,8 +1666,15 @@
             const ktpPreview = document.getElementById('ktpPreview');
             const uploadStatus = document.getElementById('uploadStatus');
             
-            // Variabel untuk menyimpan file KTP
+            // Cropper Elements
+            const ktpCropperContainer = document.getElementById('ktpCropperContainer');
+            const ktpImageForCrop = document.getElementById('ktpImageForCrop');
+            const confirmCropBtn = document.getElementById('confirmCropBtn');
+            const cancelCropBtn = document.getElementById('cancelCropBtn');
+            
+            // Variabel untuk menyimpan file KTP dan cropper instance
             let ktpFile = null;
+            let cropper = null;
 
             // Waktu
             const currentTimeElement = document.getElementById('currentTime');
@@ -2074,7 +2146,7 @@
                 showSection(layananSection, layananLink);
             });
 
-            // --- LOGIKA UPLOAD KTP (DIMODIFIKASI) ---
+            // --- LOGIKA UPLOAD KTP DENGAN CROPPER ---
             uploadArea.addEventListener('click', () => {
                 ktpUploadInput.click();
             });
@@ -2118,32 +2190,97 @@
                     return;
                 }
 
-                // Simpan file untuk dikirim ke Telegram
-                ktpFile = file;
-
+                // Simpan file asli untuk sementara
+                const originalFile = file;
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    ktpPreview.src = e.target.result;
-                    uploadResult.style.display = 'block';
-                    uploadArea.style.display = 'none';
-                    ktpUploadSection.classList.add('processing');
+                    const imageUrl = e.target.result;
                     
-                    uploadStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengunggah foto...';
-                    uploadStatus.className = 'upload-status';
-
-                    // --- SIMULASI PROSES UPLOAD (TANPA OCR) ---
-                    setTimeout(() => {
-                        // Hapus bagian OCR, hanya tampilkan preview dan pesan sukses
-                        uploadStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Foto KTP berhasil diunggah. Pastikan foto jelas dan mudah dibaca.';
-                        uploadStatus.className = 'upload-status success';
-                        ktpUploadSection.classList.remove('processing');
-                        
-                        showNotification('Foto KTP berhasil diunggah.', 'success');
-
-                    }, 1500); // Simulasi proses 1.5 detik
+                    // Sembunyikan upload area, tampilkan cropper
+                    uploadArea.style.display = 'none';
+                    uploadResult.style.display = 'none';
+                    ktpCropperContainer.style.display = 'block';
+                    document.querySelector('.cropper-actions').style.display = 'flex';
+                    
+                    ktpImageForCrop.src = imageUrl;
+                    
+                    // Hancurkan cropper sebelumnya jika ada
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    
+                    // Inisialisasi Cropper.js dengan aspect ratio KTP (1.586)
+                    cropper = new Cropper(ktpImageForCrop, {
+                        aspectRatio: 1.586,
+                        viewMode: 1,
+                        autoCropArea: 0.9,
+                        responsive: true,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
                 };
                 reader.readAsDataURL(file);
             }
+
+            // Event listener untuk tombol konfirmasi crop
+            confirmCropBtn.addEventListener('click', function() {
+                if (cropper) {
+                    // Dapatkan canvas hasil crop
+                    const canvas = cropper.getCroppedCanvas({
+                        width: 400, // Lebar hasil crop
+                        height: 252, // Tinggi hasil crop (dari aspek ratio 1.586)
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high',
+                    });
+                    
+                    canvas.toBlob(function(blob) {
+                        // Buat file baru dari blob hasil crop
+                        ktpFile = new File([blob], 'ktp-cropped.jpg', { type: 'image/jpeg' });
+                        
+                        // Tampilkan hasil crop di preview
+                        const croppedImageUrl = URL.createObjectURL(blob);
+                        ktpPreview.src = croppedImageUrl;
+                        
+                        // Hancurkan cropper
+                        cropper.destroy();
+                        cropper = null;
+                        
+                        // Tampilkan preview dan sembunyikan cropper
+                        ktpCropperContainer.style.display = 'none';
+                        document.querySelector('.cropper-actions').style.display = 'none';
+                        uploadResult.style.display = 'block';
+                        
+                        uploadStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> Foto KTP berhasil dipotong dan diunggah.';
+                        uploadStatus.className = 'upload-status success';
+                        
+                        showNotification('Foto KTP berhasil dipotong dan diunggah.', 'success');
+                    }, 'image/jpeg', 0.9);
+                }
+            });
+
+            // Event listener untuk tombol batal crop
+            cancelCropBtn.addEventListener('click', function() {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                
+                // Reset tampilan ke awal
+                ktpCropperContainer.style.display = 'none';
+                document.querySelector('.cropper-actions').style.display = 'none';
+                uploadArea.style.display = 'block';
+                uploadResult.style.display = 'none';
+                
+                // Reset file input
+                ktpUploadInput.value = '';
+                ktpFile = null;
+            });
 
             // --- EVENT LISTENER UNTUK RESET FORM ---
             resetBtn.addEventListener('click', function() {
@@ -2153,9 +2290,18 @@
                 // Reset KTP upload area
                 uploadResult.style.display = 'none';
                 uploadArea.style.display = 'block';
+                ktpCropperContainer.style.display = 'none';
+                document.querySelector('.cropper-actions').style.display = 'none';
+                
+                // Hancurkan cropper jika ada
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
                 
                 // Reset file KTP
                 ktpFile = null;
+                ktpUploadInput.value = '';
                 
                 // Reset submit button state
                 submitBtn.disabled = false;
