@@ -255,10 +255,11 @@
             width: 100%;
             position: relative;
             z-index: 1;
+            gap: 15px; /* Tambahkan jarak antar elemen */
         }
 
         .logo-container {
-            margin-bottom: 15px;
+            margin-bottom: 5px; /* Kurangi margin bawah */
         }
 
         /* Logo diperbesar */
@@ -272,7 +273,7 @@
 
         .header-title {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
 
         /* Font judul diperbesar */
@@ -292,22 +293,44 @@
             z-index: 1;
         }
 
-        .header-time {
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--dark-color);
-            padding: 10px 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: var(--card-shadow);
+        /* PERUBAHAN: Gaya untuk container kartu header */
+        .header-cards-container {
+            display: none; /* Sembunyikan secara default */
             width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Font waktu diperbesar */
-        .current-time {
+        /* PERUBAHAN: Gaya umum untuk kartu di header */
+        .header-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            flex-grow: 1; /* Agar kartu memenuhi lebar yang tersedia */
+            text-align: center;
+        }
+
+        /* PERUBAHAN: Gaya khusus untuk kartu waktu */
+        .header-time-card {
+            color: var(--primary-color);
             font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--primary-color);
+        }
+
+        /* PERUBAHAN: Gaya khusus untuk kartu pendaftaran */
+        .header-registration-card {
+            color: var(--secondary-color);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .header-registration-card i {
+            color: var(--info-color);
         }
 
         /* --- Gaya untuk Halaman Beranda (Opening) --- */
@@ -899,7 +922,13 @@
             color: #e6a800;
         }
 
-        /* Gaya untuk form lock overlay */
+        /* Gaya untuk form lock overlay - PERUBAHAN */
+        .form-card.form-locked {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
         .form-lock-overlay {
             position: absolute;
             top: 0;
@@ -1073,9 +1102,13 @@
         }
 
         .warning-box p {
-            margin-bottom: 0;
+            margin-bottom: 5px;
             color: var(--dark-color);
             font-size: 0.9rem;
+        }
+        
+        .warning-box p:last-child {
+            margin-bottom: 0;
         }
 
         .modal-footer {
@@ -1283,8 +1316,13 @@
                 <h1>SKBS/SKBN</h1>
                 <p>RSUD Talaud</p>
             </div>
-            <div class="header-time">
-                <div class="current-time" id="currentTime"></div>
+            <!-- PERUBAHAN: Pisahkan menjadi dua kartu terpisah -->
+            <div class="header-cards-container" id="headerCardsContainer">
+                <div class="header-card header-time-card" id="currentTime"></div>
+                <div class="header-card header-registration-card">
+                    <i class="fa-solid fa-clock"></i>
+                    Pendaftaran: 08:00 - 12:00
+                </div>
             </div>
         </div>
     </header>
@@ -1597,6 +1635,8 @@
                     <p>1. Wajib screenshot kode daftar ini</p>
                     <p>2. Segala kehilangan kode daftar bukan tanggung jawab pihak rumah sakit</p>
                     <p>3. Kode daftar hanya berlaku untuk hari ini</p>
+                    <!-- PERUBAHAN: Tambahkan informasi baru -->
+                    <p>4. Bukti kartu daftar wajib ditunjukkan ke petugas loket pendaftaran untuk pengambilan status</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1747,6 +1787,9 @@
             // Waktu
             const currentTimeElement = document.getElementById('currentTime');
             
+            // PERUBAHAN: Tambahkan elemen container untuk kartu
+            const headerCardsContainer = document.getElementById('headerCardsContainer');
+            
             // Modal Kode Daftar - DIMODIFIKASI
             const kodeDaftarModal = document.getElementById('kodeDaftarModal');
             const kodeDaftarText = document.getElementById('kodeDaftarText');
@@ -1800,6 +1843,8 @@
                 setTimeout(() => {
                     openingScreen.classList.add('hidden');
                     berandaSection.classList.add('active');
+                    // PERUBAHAN: Tampilkan container kartu saat masuk ke halaman utama
+                    headerCardsContainer.style.display = 'flex';
                 }, 500);
             });
             
@@ -2472,6 +2517,85 @@
                     submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Daftar';
                 }
             });
+
+            // --- PERUBAHAN: FUNGSI UNTUK MENGECEK WAKTU DAN MENGUNCI FORM ---
+            let isFormLocked = false;
+
+            function checkRegistrationTime() {
+                const now = new Date();
+                const currentHour = now.getHours();
+                
+                // Kunci form jika jam >= 12:00 atau < 08:00
+                return currentHour >= 12 || currentHour < 8;
+            }
+
+            function toggleFormLock(shouldLock) {
+                const formCards = document.querySelectorAll('.form-card, .registration-type-card, .ktp-upload-section');
+                const formInputs = form.querySelectorAll('input, select, textarea');
+                
+                if (shouldLock) {
+                    // Tambahkan kelas dan overlay
+                    formCards.forEach(card => {
+                        card.classList.add('form-locked');
+                        // Hapus overlay lama jika ada
+                        const oldOverlay = card.querySelector('.form-lock-overlay');
+                        if (oldOverlay) {
+                            oldOverlay.remove();
+                        }
+                        
+                        // Buat overlay baru
+                        const overlay = document.createElement('div');
+                        overlay.className = 'form-lock-overlay';
+                        overlay.innerHTML = `
+                            <i class="fa-solid fa-lock lock-icon"></i>
+                            <div class="lock-message">
+                                <h3>Pendaftaran Ditutup</h3>
+                                <p>Form pendaftaran hanya tersedia pada pukul 08:00 - 12:00.</p>
+                                <p>Silakan kembali lagi besok pada jam operasional.</p>
+                            </div>
+                        `;
+                        card.appendChild(overlay);
+                    });
+                    
+                    // Nonaktifkan semua input
+                    formInputs.forEach(input => input.disabled = true);
+                    
+                    // Nonaktifkan tombol submit
+                    submitBtn.disabled = true;
+                    
+                    // Tampilkan notifikasi
+                    showNotification('Pendaftaran ditutup. Jam operasional pendaftaran adalah pukul 08:00 - 12:00.', 'error');
+                    
+                    isFormLocked = true;
+                } else {
+                    // Hapus kelas dan overlay
+                    formCards.forEach(card => {
+                        card.classList.remove('form-locked');
+                        const overlay = card.querySelector('.form-lock-overlay');
+                        if (overlay) {
+                            overlay.remove();
+                        }
+                    });
+                    
+                    // Aktifkan kembali semua input
+                    formInputs.forEach(input => input.disabled = false);
+                    
+                    // Aktifkan kembali tombol submit
+                    submitBtn.disabled = false;
+                    
+                    isFormLocked = false;
+                }
+            }
+
+            // Cek waktu setiap menit
+            setInterval(() => {
+                const shouldBeLocked = checkRegistrationTime();
+                if (shouldBeLocked && !isFormLocked) {
+                    toggleFormLock(true);
+                } else if (!shouldBeLocked && isFormLocked) {
+                    toggleFormLock(false);
+                }
+            }, 60000); // Cek setiap 60 detik
         });
     </script>
 
